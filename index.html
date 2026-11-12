@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GeoPSYtric: draw one line, get a mandala</title>
+<meta name="description" content="Symmetry drawing app by a tattoo artist. Mandalas with up to 64 axes, all 17 tile patterns, neon loops and tattoo stencils printed in real millimetres.">
+<!-- noindex until the imprint text is in place (German imprint duty); remove together with the placeholders -->
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0b0710">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta property="og:title" content="GeoPSYtric">
+<meta property="og:description" content="Draw one line, get a mandala. Symmetry drawing, tattoo stencils and psychedelic loops.">
+<meta property="og:image" content="https://geopsytric.com/img/flower-neon.webp">
+<style>
+  :root { --bg: #0b0710; --panel: #15101d; --line: #2c2238; --text: #efeaf6; --muted: #a198b0;
+    --pink: #ff2bd6; --violet: #8a5cff; --cyan: #18e0ff; --neon: linear-gradient(90deg, #ff2bd6, #8a5cff 50%, #18e0ff); }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  a { color: var(--cyan); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+  .word { font-weight: 300; letter-spacing: -.01em; white-space: nowrap; }
+  .word b, .grad { font-weight: 900; background: var(--neon); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  header { display: flex; align-items: center; gap: 10px; padding: 14px 0; }
+  header svg { width: 34px; height: 34px; }
+  header .word { font-size: 22px; margin-right: auto; }
+  header nav a { color: var(--muted); text-decoration: none; margin-left: 16px; font-size: 15px; }
+  .btn { display: inline-block; padding: 13px 22px; border-radius: 14px; text-decoration: none; font-weight: 600; font-size: 16px;
+    border: 1px solid var(--line); color: var(--text); background: var(--panel); }
+  .btn.primary { background: var(--neon); border-color: transparent; color: #fff; }
+  .hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 32px; align-items: center; padding: 28px 0 56px; }
+  .hero h1 { font-size: clamp(38px, 6vw, 64px); line-height: 1.05; margin: 0 0 16px; letter-spacing: -.02em; }
+  .hero p { color: var(--muted); font-size: 19px; margin: 0 0 24px; max-width: 34em; }
+  .hero .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .stagebox { position: relative; aspect-ratio: 1; width: 100%; max-width: 520px; justify-self: center; }
+  #demo { width: 100%; height: 100%; border-radius: 50%; touch-action: none; display: block;
+    background: radial-gradient(circle, #1d0f2b, #07040b 70%); box-shadow: 0 0 80px #8a5cff33; }
+  .hint { text-align: center; color: var(--muted); font-size: 14px; margin-top: 10px; }
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: clamp(28px, 4vw, 40px); margin: 0 0 8px; letter-spacing: -.01em; }
+  .lead { color: var(--muted); margin: 0 0 28px; }
+  .grid6 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 20px; }
+  .card h3 { margin: 0 0 6px; font-size: 19px; }
+  .card p { margin: 0; color: var(--muted); font-size: 16px; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  figure { margin: 0; }
+  figure img { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; border-radius: 16px; display: block; background: var(--panel); }
+  figcaption { color: var(--muted); font-size: 14px; margin-top: 8px; }
+  .prices { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .price { font-size: 34px; font-weight: 800; margin: 6px 0 12px; }
+  .price small { font-size: 15px; color: var(--muted); font-weight: 400; }
+  .card ul { margin: 0; padding-left: 20px; color: var(--text); }
+  .card.pro { border-color: #8a5cff88; box-shadow: 0 0 40px #ff2bd622; }
+  details { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; margin-bottom: 10px; }
+  summary { cursor: pointer; font-weight: 600; }
+  details p { color: var(--muted); margin: 10px 0 0; }
+  footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--muted); font-size: 15px; }
+  footer a { color: var(--muted); margin-right: 16px; }
+  @media (max-width: 820px) {
+    .hero { grid-template-columns: 1fr; padding-top: 8px; }
+    .stagebox { order: -1; max-width: 300px; }
+    .grid6 { grid-template-columns: 1fr 1fr; }
+    .prices { grid-template-columns: 1fr; }
+    header nav { display: none; }
+  }
+  @media (max-width: 520px) { .grid6 { grid-template-columns: 1fr; } body { font-size: 16px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg viewBox="-65 -65 130 130" aria-hidden="true">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff2bd6"/><stop offset=".5" stop-color="#8a5cff"/><stop offset="1" stop-color="#18e0ff"/></linearGradient></defs>
+      <g fill="none" stroke="url(#g)" stroke-linejoin="round" stroke-linecap="round">
+        <polygon points="0,-56 48.5,-28 48.5,28 0,56 -48.5,28 -48.5,-28" stroke-width="6"/>
+        <polygon points="0,-56 48.5,28 -48.5,28" stroke-width="3.6"/><polygon points="0,56 48.5,-28 -48.5,-28" stroke-width="3.6"/>
+        <path d="M-22,0 Q0,-16 22,0 Q0,16 -22,0 Z" stroke-width="4"/>
+      </g><circle r="6.5" fill="#18e0ff"/>
+    </svg>
+    <span class="word">geo<b>PSY</b>tric</span>
+    <nav><a href="#features">Features</a><a href="#gallery">Gallery</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></nav>
+  </header>
+
+  <div class="hero">
+    <div>
+      <h1>Draw one line.<br><span class="grad">Get a mandala.</span></h1>
+      <p>I tattooed geometry for years and fought every app that couldn't count past eight. So I built my own. Any symmetry, all 17 tile patterns, stencils in real millimetres.</p>
+      <div class="row">
+        <a class="btn primary" href="#try">Try it right here</a>
+        <a class="btn" href="#pricing">Free and Pro</a>
+      </div>
+      <p class="hint" style="text-align:left;margin-top:16px">Coming to iPhone, iPad and Android.</p>
+    </div>
+    <div class="stagebox" id="try">
+      <canvas id="demo" width="1040" height="1040" aria-label="Live symmetry demo, draw with your finger"></canvas>
+      <div class="hint">Your finger is the brush. Twelve mirrors do the rest.</div>
+    </div>
+  </div>
+</div>
+
+<section id="features"><div class="wrap">
+  <h2>Made for people who <span class="grad">count in mirrors</span></h2>
+  <p class="lead">Built by a tattoo artist, for tattoo artists, sacred geometry lovers and everyone who gets lost in symmetry.</p>
+  <div class="grid6">
+    <div class="card"><h3>Any fold you want</h3><p>3, 6, 12, 24, 64. Mirror on or off, several centres. Procreate stops at 8. I don't.</p></div>
+    <div class="card"><h3>All 17 tile patterns</h3><p>Every way a pattern can repeat on a flat surface. Bands and sleeves that wrap without a seam.</p></div>
+    <div class="card"><h3>Stencil ready</h3><p>One tap to clean black lines. PDF and SVG at true size in millimetres, big designs over several A4 sheets.</p></div>
+    <div class="card"><h3>Grow</h3><p>Hit the button and your pattern has kids. Pick the best one, grow it again. You stay the artist.</p></div>
+    <div class="card"><h3>Neon and music</h3><p>Glowing brushes, colour cycles, and a music mode where the pattern pulses with the beat.</p></div>
+    <div class="card"><h3>Loops for Reels</h3><p>Make it breathe, spin and shift hue, then export a seamless video for Reels and TikTok.</p></div>
+  </div>
+</div></section>
+
+<section id="gallery"><div class="wrap">
+  <h2>Straight out of the app</h2>
+  <p class="lead">Everything below was drawn in GeoPSYtric, no cleanup.</p>
+  <div class="gallery">
+    <figure><img src="img/flower-neon.webp" width="900" height="900" loading="lazy" decoding="async" alt="Neon flower of life mandala"><figcaption>Flower of life with the neon brush</figcaption></figure>
+    <figure><img src="img/dotwork-stencil.webp" width="900" height="900" loading="lazy" decoding="async" alt="Black dotwork mandala stencil on white"><figcaption>Dotwork mandala, stencil view</figcaption></figure>
+    <figure><img src="img/p6m-tiles.webp" width="900" height="900" loading="lazy" decoding="async" alt="Hexagonal tile pattern in pink, cyan and lime"><figcaption>Hex tiles from three short lines</figcaption></figure>
+    <figure><img src="img/spiral-loop.webp" width="900" height="900" loading="lazy" decoding="async" alt="Sunflower spiral mandala in pink and cyan"><figcaption>Sunflower spiral, made for a loop</figcaption></figure>
+    <figure><img src="img/arm.webp" width="600" height="600" loading="lazy" decoding="async" alt="Mandala design previewed on a forearm"><figcaption>Arm preview before the first line of ink</figcaption></figure>
+  </div>
+</div></section>
+
+<section id="pricing"><div class="wrap">
+  <h2>Pay once. <span class="grad">No subscription.</span></h2>
+  <p class="lead">I hate them too.</p>
+  <div class="prices">
+    <div class="card">
+      <h3>Free</h3>
+      <div class="price">0 €</div>
+      <ul>
+        <li>Mandalas with up to 12 axes</li>
+        <li>4 tile patterns</li>
+        <li>Pen, line, circle, symmetric fill</li>
+        <li>Neon brush, colour cycle, music mode</li>
+        <li>Grow with 3 mutations</li>
+        <li>PNG and loop videos with a small logo</li>
+        <li>No account, drawings stay on your device</li>
+      </ul>
+    </div>
+    <div class="card pro">
+      <h3>Pro</h3>
+      <div class="price">[PRICE] <small>once</small></div>
+      <ul>
+        <li>All 17 tile patterns, up to 64 axes, several centres</li>
+        <li>Full Grow engine and every preset</li>
+        <li>Pattern Fade</li>
+        <li>Tattoo kit: stencil view, mirror for transfer, minimum line width, arm preview</li>
+        <li>PDF and SVG in true millimetres, multi sheet printing</li>
+        <li>Exports in double size, transparent, without the logo</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<section id="faq"><div class="wrap">
+  <h2>Questions</h2>
+  <details><summary>When can I get it?</summary><p>GeoPSYtric is coming to the App Store and Google Play. The launch date follows here.</p></details>
+  <details><summary>Does it work on my iPad?</summary><p>Yes, and Apple Pencil pressure works.</p></details>
+  <details><summary>Do I need an account?</summary><p>No. Your drawings stay on your device. No tracking, no ads.</p></details>
+  <details><summary>Can I use the designs for paid tattoos?</summary><p>Yes. What you draw is yours.</p></details>
+  <details><summary>Will the stencil print at the right size?</summary><p>Yes. PDF and SVG export in real millimetres. Designs wider than 190 mm come out on several A4 sheets with crop marks.</p></details>
+  <details><summary>Does it work offline?</summary><p>Yes, everything runs on your device.</p></details>
+  <details><summary>Refunds?</summary><p>[REFUND POLICY]</p></details>
+</div></section>
+
+<footer><div class="wrap">
+  <p>Made by Lily Lu, tattoo artist, in Germany.</p>
+  <p><a href="imprint.html">Imprint</a><a href="privacy.html">Privacy</a><a href="mailto:[SUPPORT EMAIL]">Contact</a></p>
+</div></footer>
+
+<script>
+// Live demo: a tiny 12 fold mirror engine. When nobody draws, it draws by itself.
+(() => {
+  const cv = document.getElementById("demo"), x = cv.getContext("2d"), S = cv.width, C = S / 2, N = 12;
+  const cols = ["#ff2bd6", "#8a5cff", "#18e0ff", "#c6ff00", "#ff9100"];
+  let ci = 0, last = null, idle = 0, t = 0, auto = true, drawing = false;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function seg(a, b, col, w) {
+    x.save(); x.translate(C, C);
+    x.lineCap = "round"; x.strokeStyle = col; x.lineWidth = w; x.shadowColor = col; x.shadowBlur = w * 3;
+    x.globalCompositeOperation = "lighter";
+    for (let i = 0; i < N; i++) {
+      x.save(); x.rotate(i * Math.PI * 2 / N);
+      for (const m of [1, -1]) { x.save(); x.scale(1, m); x.beginPath(); x.moveTo(a[0], a[1]); x.lineTo(b[0], b[1]); x.stroke(); x.restore(); }
+      x.restore();
+    }
+    x.restore();
+  }
+  function fade() { x.globalCompositeOperation = "source-over"; x.fillStyle = "rgba(11,7,16,0.006)"; x.fillRect(0, 0, S, S); }
+  function autoPoint(t) {
+    const r = C * (0.18 + 0.7 * (0.5 + 0.5 * Math.sin(t * 0.7)) * (0.6 + 0.4 * Math.sin(t * 0.23)));
+    const a = 0.25 * Math.sin(t * 1.3) + t * 0.05;
+    return [Math.cos(a) * r, Math.sin(a) * r];
+  }
+  function frame() {
+    fade();
+    if (auto) {
+      t += 0.035;
+      const p = autoPoint(t);
+      if (last) seg(last, p, cols[Math.floor(t / 6) % cols.length], 3.2);
+      last = p;
+    } else if (!drawing && ++idle > 240) { auto = true; last = null; }
+    requestAnimationFrame(frame);
+  }
+  const pos = (e) => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * S - C, (e.clientY - r.top) / r.height * S - C]; };
+  cv.addEventListener("pointerdown", (e) => { cv.setPointerCapture(e.pointerId); auto = false; drawing = true; idle = 0; last = pos(e); ci = (ci + 1) % cols.length; });
+  cv.addEventListener("pointermove", (e) => { if (!drawing) return; const p = pos(e); seg(last, p, cols[ci], 4); last = p; });
+  const up = () => { drawing = false; idle = 0; };
+  cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  if (reduce) { for (let i = 0; i < 900; i++) { t += 0.035; const p = autoPoint(t); if (last) seg(last, p, cols[Math.floor(t / 6) % 5], 3.2); last = p; } auto = false; }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
