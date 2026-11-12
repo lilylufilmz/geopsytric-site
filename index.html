@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>GeoPSYtric: draw one line, get a mandala</title>
 <meta name="description" content="The symmetry drawing app by a tattoo artist. Mandalas with up to 64 axes, all 17 tile patterns, neon loops and tattoo stencils printed in real millimetres.">
-<!-- noindex until the imprint text is in place (German imprint duty); remove together with the placeholders -->
-<meta name="robots" content="noindex">
 <meta name="theme-color" content="#0b0710">
 <link rel="icon" href="favicon-32.png" sizes="32x32">
 <link rel="icon" href="brand/app-icon.svg" type="image/svg+xml">
@@ -15,7 +13,6 @@
 <meta property="og:description" content="Draw one line, get a mandala. Symmetry drawing, tattoo stencils and psychedelic loops.">
 <meta property="og:image" content="https://geopsytric.com/img/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preload" as="image" href="img/photo/hero.webp">
 <style>
   :root { --bg: #0b0710; --bg2: #100a17; --panel: #15101d; --line: #2a2036; --text: #f1ecf7; --muted: #a69cb6;
     --pink: #ff2bd6; --violet: #8a5cff; --cyan: #18e0ff;
@@ -45,10 +42,11 @@
   .btn.sm { padding: 10px 18px; font-size: 15px; border-radius: 12px; }
 
   /* hero */
-  .hero { position: relative; padding: 56px 0 72px; }
+  .hero { position: relative; padding: 56px 0 72px; overflow: hidden; }
+  html, body { overflow-x: clip; }
   .hero::before { content: ""; position: absolute; inset: -200px -20% auto; height: 900px; z-index: -1;
     background: radial-gradient(600px 400px at 75% 35%, #8a5cff30, transparent 70%), radial-gradient(500px 380px at 20% 20%, #ff2bd622, transparent 70%); }
-  .hero .wrap { display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; }
+  .hero .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
   .hero h1 { font-size: clamp(42px, 6.4vw, 78px); line-height: 1.02; margin: 0 0 22px; letter-spacing: -.035em; font-weight: 800; }
   .hero p.sub { color: var(--muted); font-size: 20px; margin: 0 0 30px; max-width: 32em; }
   .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
@@ -91,9 +89,20 @@
 
   /* try it */
   .try .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
-  .stagebox { position: relative; aspect-ratio: 1; width: 100%; max-width: 500px; justify-self: center; }
-  #demo { width: 100%; height: 100%; border-radius: 50%; touch-action: none; display: block; cursor: crosshair;
+  .stagebox { position: relative; width: 100%; max-width: 540px; justify-self: center; }
+  #demo { width: 100%; aspect-ratio: 1; height: auto; border-radius: 50%; touch-action: none; display: block; cursor: crosshair;
     background: radial-gradient(circle, #1d0f2b, #07040b 70%); box-shadow: 0 0 120px #8a5cff40, 0 0 0 1px #ffffff10; }
+  .stagebox .ring { position: absolute; right: -36px; top: -36px; width: 150px; height: 150px; opacity: .8; animation: spin 40s linear infinite; pointer-events: none; }
+  .stagebox .folds { justify-content: center; }
+  .stores { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 26px; }
+  .store { display: inline-flex; align-items: center; gap: 10px; padding: 9px 18px 9px 14px; border-radius: 12px; background: #000; border: 1px solid #ffffff33; color: #fff; font-weight: 650; font-size: 18px; line-height: 1.1; opacity: .9; }
+  .store small { display: block; font-size: 11px; font-weight: 400; color: #cfc6dc; }
+  .store svg { width: 24px; height: 24px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linejoin: round; }
+  .show { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .show canvas { width: 100%; aspect-ratio: 1; border-radius: 24px; display: block; background: #07040b; box-shadow: 0 0 0 1px #ffffff10, 0 20px 60px #8a5cff1f; }
+  .show figcaption { font-size: 15px; } .show figcaption b { color: var(--text); display: block; font-size: 18px; margin-bottom: 2px; }
+  .hexbox { width: 100%; max-width: 540px; justify-self: center; }
+  #hexdemo { width: 100%; aspect-ratio: 1; height: auto; display: block; border-radius: 28px; touch-action: none; cursor: crosshair; background: #07040b; box-shadow: 0 0 120px #18e0ff26, 0 0 0 1px #ffffff10; }
   .hint { text-align: center; color: var(--muted); font-size: 14px; margin-top: 14px; }
   .folds { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 24px; }
   .folds button { font: inherit; font-size: 15px; padding: 9px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; }
@@ -160,8 +169,11 @@
   @media (max-width: 960px) {
     .hero .wrap, .try .wrap, .split .wrap { grid-template-columns: 1fr; gap: 40px; }
     .heroart { max-width: 420px; }
+    .hero .stagebox { order: -1; max-width: 400px; }
+    .show { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+    .station .heroart { order: 2; }
     .heroart .badge { left: 12px; bottom: 16px; }
-    .heroart .ring { right: -10px; top: -30px; width: 120px; height: 120px; }
+    .stagebox .ring { right: -6px; top: -26px; width: 110px; height: 110px; }
     .grid6, .steps { grid-template-columns: 1fr 1fr; }
     .gallery { grid-template-columns: repeat(3, 1fr); }
     .split .pic { max-width: 460px; }
@@ -178,9 +190,10 @@
     .stats .wrap { grid-template-columns: 1fr 1fr; }
     .top .logo img { height: 32px; }
     .top .btn.sm { padding: 9px 14px; font-size: 14px; }
+    .folds { gap: 6px; } .folds button { padding: 8px 12px; font-size: 14px; }
     footer a { margin: 0 20px 0 0; }
   }
-  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } .heroart .ring { animation: none; } html { scroll-behavior: auto; } }
+  @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } .ring { animation: none; } html { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
@@ -203,13 +216,20 @@
         <a class="btn primary" href="#try">Draw right here</a>
         <a class="btn" href="#pricing">Free and Pro</a>
       </div>
-      <div class="soon"><span><i></i>iPhone and iPad first</span><span><i></i>Android next</span><span><i></i>No account, no ads</span></div>
+      <div class="stores" aria-label="App stores, coming soon">
+        <span class="store"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M10 18.5h4"/></svg><span><small>Coming soon to the</small>App Store</span></span>
+        <span class="store"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5v17l14.5-8.5z"/></svg><span><small>Coming soon on</small>Google Play</span></span>
+      </div>
+      <div class="soon"><span><i></i>No account</span><span><i></i>No ads</span><span><i></i>No subscription</span></div>
     </div>
-    <div class="heroart">
+    <div class="stagebox" id="try">
       <svg class="ring" viewBox="-100 -100 200 200" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff2bd6"/><stop offset=".5" stop-color="#8a5cff"/><stop offset="1" stop-color="#18e0ff"/></linearGradient></defs>
         <g fill="none" stroke="url(#rg)" stroke-width="1.2"><circle r="96"/><circle r="40"/><circle cx="40" r="40"/><circle cx="-40" r="40"/><circle cx="20" cy="34.64" r="40"/><circle cx="-20" cy="34.64" r="40"/><circle cx="20" cy="-34.64" r="40"/><circle cx="-20" cy="-34.64" r="40"/></g></svg>
-      <div class="photo"><img src="img/photo/hero.webp" srcset="img/photo/hero-sm.webp 464w, img/photo/hero.webp 928w" sizes="(max-width: 960px) 90vw, 480px" width="928" height="1152" alt="Tattooed artist drawing a neon flower of life on an iPad with GeoPSYtric" fetchpriority="high"></div>
-      <div class="badge"><img src="brand/app-icon.svg" width="52" height="52" alt=""><div><b>GeoPSYtric</b><small>Made by a tattoo artist</small></div></div>
+      <canvas id="demo" width="1040" height="1040" aria-label="Live symmetry demo, draw with your finger"></canvas>
+      <div class="folds" role="group" aria-label="Number of mirror axes">
+        <button data-n="6">6</button><button data-n="8">8</button><button data-n="12" class="on">12</button><button data-n="24">24</button><button data-n="32">32</button><button id="clear">Clear</button>
+      </div>
+      <div class="hint">Draw inside the circle. Your finger is the brush, the mirrors do the rest.</div>
     </div>
   </div>
 </div>
@@ -230,6 +250,21 @@
   <img src="img/photo/devices.webp" srcset="img/photo/devices-sm.webp 688w, img/photo/devices.webp 1376w" sizes="(max-width: 1160px) 92vw, 1120px" width="1376" height="768" loading="lazy" decoding="async" alt="GeoPSYtric on iPhone and iPad showing a neon flower of life and a hex tile pattern">
 </div></section>
 
+<section class="try" id="tiles" style="background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><div class="wrap">
+  <div class="reveal">
+    <span class="eyebrow">Try it: tiles</span>
+    <h2>Now paint <span class="grad">a whole wall.</span></h2>
+    <p class="lead">Every line you draw lands in every hexagon at once, turned six ways and mirrored. That is one of the 17 tile patterns in the app. When you stop, it keeps going by itself.</p>
+    <div class="folds" role="group" aria-label="Tile size">
+      <button data-cell="70">Small</button><button data-cell="110" class="on">Medium</button><button data-cell="170">Large</button><button id="hexmirror" class="on">Mirror</button><button id="hexclear">Clear</button>
+    </div>
+  </div>
+  <div class="hexbox">
+    <canvas id="hexdemo" width="1040" height="1040" aria-label="Live hexagon tile demo, draw with your finger"></canvas>
+    <div class="hint">Draw anywhere. The pattern repeats without a seam.</div>
+  </div>
+</div></section>
+
 <section id="features" style="padding-top:24px"><div class="wrap">
   <div class="reveal">
     <span class="eyebrow">Features</span>
@@ -246,18 +281,29 @@
   </div>
 </div></section>
 
-<section class="try" id="try" style="background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><div class="wrap">
+<section class="split station"><div class="wrap">
   <div class="reveal">
-    <span class="eyebrow">Live demo</span>
-    <h2>Go on, <span class="grad">touch it.</span></h2>
-    <p class="lead">This is a tiny piece of the real engine. Draw inside the circle with your finger or mouse. When you stop, it keeps dreaming by itself.</p>
-    <div class="folds" role="group" aria-label="Number of mirror axes">
-      <button data-n="6">6</button><button data-n="8">8</button><button data-n="12" class="on">12</button><button data-n="24">24</button><button data-n="32">32</button><button id="clear">Clear</button>
-    </div>
+    <span class="eyebrow">Why it exists</span>
+    <h2>Built at the <span class="grad">tattoo station</span></h2>
+    <p class="lead">Clients bring a feeling, not a drawing. GeoPSYtric lets you sketch the idea with them in minutes, switch folds and tiles live, and walk to the printer with a clean stencil.</p>
+    <a class="btn primary" href="#try">Try the mirrors</a>
   </div>
-  <div class="stagebox">
-    <canvas id="demo" width="1040" height="1040" aria-label="Live symmetry demo, draw with your finger"></canvas>
-    <div class="hint">Your finger is the brush. The mirrors do the rest.</div>
+  <div class="heroart reveal">
+    <div class="photo"><img src="img/photo/hero.webp" srcset="img/photo/hero-sm.webp 464w, img/photo/hero.webp 928w" sizes="(max-width: 960px) 90vw, 480px" width="928" height="1152" loading="lazy" decoding="async" alt="Tattooed artist drawing a neon flower of life on an iPad with GeoPSYtric"></div>
+    <div class="badge"><img src="brand/app-icon.svg" width="52" height="52" alt=""><div><b>GeoPSYtric</b><small>Made by a tattoo artist</small></div></div>
+  </div>
+</div></section>
+
+<section id="grow" style="background:var(--bg2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><div class="wrap">
+  <div class="center reveal">
+    <span class="eyebrow">Watch it grow</span>
+    <h2>One stroke in, <span class="grad">a whole world out</span></h2>
+    <p class="lead">Three things the app does all day, running live in your browser.</p>
+  </div>
+  <div class="show">
+    <figure class="reveal"><canvas class="sp" data-kind="mandala" width="640" height="640"></canvas><figcaption><b>Mandala</b> One curve, mirrored 16 times, redrawn with every new idea.</figcaption></figure>
+    <figure class="reveal"><canvas class="sp" data-kind="tiles" width="640" height="640"></canvas><figcaption><b>Tiles</b> Three short lines become a seamless hex pattern.</figcaption></figure>
+    <figure class="reveal"><canvas class="sp" data-kind="spiral" width="640" height="640"></canvas><figcaption><b>Spiral</b> Sunflower seeds at the golden angle, 137.5 degrees.</figcaption></figure>
   </div>
 </div></section>
 
@@ -360,14 +406,14 @@
   <div class="box reveal">
     <img class="mk" src="brand/mark.svg" width="220" height="205" alt="">
     <h2>Your next pattern is <span class="grad">one line away.</span></h2>
-    <p class="lead">Coming to iPhone and iPad. Until then, draw right here in your browser.</p>
+    <p class="lead">Coming to iPhone and iPad first, then Android. Until then, draw right here in your browser.</p>
     <a class="btn primary" href="#try">Start drawing</a>
   </div>
 </div></section>
 
 <footer><div class="wrap">
   <div><img src="brand/lockup-white.svg" width="1042" height="205" alt="GeoPSYtric"><br>Made by Lily Lu, tattoo artist, in Germany.</div>
-  <div><a href="imprint.html">Imprint</a><a href="privacy.html">Privacy</a><a href="mailto:[SUPPORT EMAIL]">Contact</a></div>
+  <div><a href="imprint/">Imprint</a><a href="privacy/">Privacy</a><a href="mailto:lily@lily-lu.com">Contact</a></div>
 </div></footer>
 
 <script>
@@ -379,6 +425,119 @@
   if (!("IntersectionObserver" in window)) { els.forEach(e => e.classList.add("in")); return; }
   const io = new IntersectionObserver((es) => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
   els.forEach(e => io.observe(e));
+})();
+// Show pieces: three small generators that loop while visible.
+(() => {
+  const cvs = [...document.querySelectorAll("canvas.sp")];
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const TAU = Math.PI * 2;
+  cvs.forEach(cv => {
+    const x = cv.getContext("2d"), S = cv.width, C = S / 2, kind = cv.dataset.kind;
+    let on = false, f = 0, seed = Math.random() * 100;
+    const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    let P = {};
+    function reset() {
+      x.globalCompositeOperation = "source-over"; x.fillStyle = "#07040b"; x.fillRect(0, 0, S, S); f = -1;
+      P = { k: 2 + Math.floor(rnd() * 5), m: 3 + Math.floor(rnd() * 6), a: 0.25 + rnd() * 0.5, hue: rnd() * 360, segs: [] };
+      for (let i = 0; i < 3; i++) P.segs.push([rnd() * 0.5, rnd() * 0.29, rnd() * 0.5, rnd() * 0.29]);
+    }
+    const glow = (col, w) => { x.strokeStyle = col; x.fillStyle = col; x.lineWidth = w; x.shadowColor = col; x.shadowBlur = w * 4; x.lineCap = "round"; x.globalCompositeOperation = "lighter"; };
+    function mandala() {
+      const N = 16, steps = 6, T0 = f * steps, T1 = T0 + steps;
+      if (f > 520) return reset();
+      const pt = (t) => { const u = t / 900 * TAU; const r = C * 0.86 * (P.a + (1 - P.a) * Math.abs(Math.sin(P.k * u))) * (0.7 + 0.3 * Math.cos(P.m * u)); return [Math.cos(u) * r, Math.sin(u) * r]; };
+      glow("hsl(" + ((P.hue + f * 0.6) % 360) + ",100%,62%)", 1.6);
+      x.save(); x.translate(C, C);
+      for (let i = 0; i < N; i++) { x.save(); x.rotate(i * TAU / N); x.beginPath(); let p = pt(T0); x.moveTo(p[0], p[1]); for (let t = T0 + 1; t <= T1; t++) { p = pt(t); x.lineTo(p[0], p[1]); } x.stroke(); x.restore(); }
+      x.restore();
+    }
+    function tiles() {
+      const a = 92, h = a * Math.sqrt(3) / 2, ring = Math.floor(f / 14);
+      if (ring > 9) { if (f > 200) reset(); return; }
+      if (f % 14) return;
+      const cols = ["#ff2bd6", "#8a5cff", "#18e0ff"];
+      x.save(); x.translate(C, C);
+      for (let q = -ring; q <= ring; q++) for (let r = -ring; r <= ring; r++) {
+        if (Math.max(Math.abs(q), Math.abs(r), Math.abs(-q - r)) !== ring) continue;
+        const cx = a * (q + r / 2) * 1.0, cy = h * r;
+        for (let k = 0; k < 6; k++) for (const m of [1, -1]) {
+          x.save(); x.translate(cx, cy); x.rotate(k * TAU / 6); x.scale(1, m);
+          P.segs.forEach((g, i) => { glow(cols[i], 2.2); x.beginPath(); x.moveTo(g[0] * a, g[1] * a); x.lineTo(g[2] * a, g[3] * a); x.stroke(); });
+          x.restore();
+        }
+      }
+      x.restore();
+    }
+    function spiral() {
+      const per = 4, total = 700;
+      if (f * per > total + 150) return reset();
+      x.save(); x.translate(C, C);
+      for (let j = 0; j < per; j++) {
+        const n = f * per + j; if (n > total) break;
+        const r = Math.sqrt(n / total) * C * 0.9, t = n * 137.508 * Math.PI / 180, sz = 2 + 5 * Math.sqrt(n / total);
+        glow("hsl(" + ((P.hue + n * 0.5) % 360) + ",100%,62%)", 1);
+        x.beginPath(); x.arc(Math.cos(t) * r, Math.sin(t) * r, sz, 0, TAU); x.fill();
+      }
+      x.restore();
+    }
+    const step = { mandala, tiles, spiral }[kind];
+    reset();
+    if (reduce) { for (let i = 0; i < 400; i++) { step(); f++; } return; }
+    function loop() { if (on) { step(); f++; } requestAnimationFrame(loop); }
+    if ("IntersectionObserver" in window) new IntersectionObserver(es => { on = es[0].isIntersecting; }).observe(cv); else on = true;
+    requestAnimationFrame(loop);
+  });
+})();
+// Hex tile demo: p6m, every stroke copied into every cell, 6 turns plus mirror.
+(() => {
+  const cv = document.getElementById("hexdemo"); if (!cv) return;
+  const x = cv.getContext("2d"), S = cv.width, TAU = Math.PI * 2, R3 = Math.sqrt(3);
+  const cols = ["#ff2bd6", "#8a5cff", "#18e0ff", "#c6ff00", "#ff9100"];
+  let A = 110, mirror = true, last = null, drawing = false, auto = true, idle = 0, t = 0, ci = 0, visible = false;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const centre = (q, r) => [S / 2 + A * (q + r / 2), S / 2 + A * R3 / 2 * r];
+  function nearest(px, py) {
+    const r = Math.round((py - S / 2) / (A * R3 / 2)); const q = Math.round((px - S / 2) / A - r / 2);
+    let best = null, bd = 1e9;
+    for (let dq = -1; dq <= 1; dq++) for (let dr = -1; dr <= 1; dr++) { const c = centre(q + dq, r + dr); const d = (c[0] - px) ** 2 + (c[1] - py) ** 2; if (d < bd) { bd = d; best = c; } }
+    return best;
+  }
+  function seg(a, b, col, w) {
+    const c0 = nearest((a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
+    const ax = a[0] - c0[0], ay = a[1] - c0[1], bx = b[0] - c0[0], by = b[1] - c0[1];
+    const n = Math.ceil(S / A) + 2, tr = [];
+    for (let k = 0; k < 6; k++) { const c = Math.cos(k * TAU / 6), s = Math.sin(k * TAU / 6); tr.push([c, -s, s, c]); if (mirror) tr.push([c, s, s, -c]); }
+    x.save(); x.lineCap = "round"; x.strokeStyle = col; x.lineWidth = w; x.shadowColor = col; x.shadowBlur = w * 2.5; x.globalCompositeOperation = "lighter";
+    x.beginPath();
+    for (let r = -n; r <= n; r++) for (let q = -n; q <= n; q++) {
+      const c = centre(q, r); if (c[0] < -A || c[0] > S + A || c[1] < -A || c[1] > S + A) continue;
+      for (const m of tr) { x.moveTo(c[0] + m[0] * ax + m[1] * ay, c[1] + m[2] * ax + m[3] * ay); x.lineTo(c[0] + m[0] * bx + m[1] * by, c[1] + m[2] * bx + m[3] * by); }
+    }
+    x.stroke(); x.restore();
+  }
+  function fade() { x.globalCompositeOperation = "source-over"; x.fillStyle = "rgba(7,4,11,0.008)"; x.fillRect(0, 0, S, S); }
+  const autoPoint = (t) => { const r = A * 0.48 * (0.5 + 0.5 * Math.sin(t * 0.9)); const a = t * 0.31 + Math.sin(t * 0.5); return [S / 2 + Math.cos(a) * r, S / 2 + Math.sin(a) * r]; };
+  function frame() {
+    if (visible) {
+      fade();
+      if (auto) { t += 0.03; const p = autoPoint(t); if (last) seg(last, p, cols[Math.floor(t / 5) % cols.length], 2.4); last = p; }
+      else if (!drawing && ++idle > 240) { auto = true; last = null; }
+    }
+    requestAnimationFrame(frame);
+  }
+  const clear = () => { x.globalCompositeOperation = "source-over"; x.fillStyle = "#07040b"; x.fillRect(0, 0, S, S); last = null; };
+  const pos = (e) => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * S, (e.clientY - r.top) / r.height * S]; };
+  cv.addEventListener("pointerdown", (e) => { cv.setPointerCapture(e.pointerId); auto = false; drawing = true; idle = 0; last = pos(e); ci = (ci + 1) % cols.length; });
+  cv.addEventListener("pointermove", (e) => { if (!drawing) return; const p = pos(e); seg(last, p, cols[ci], 3); last = p; });
+  const up = () => { drawing = false; idle = 0; };
+  cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  document.querySelectorAll("#tiles button[data-cell]").forEach(b => b.addEventListener("click", () => { A = +b.dataset.cell; document.querySelectorAll("#tiles button[data-cell]").forEach(o => o.classList.toggle("on", o === b)); clear(); }));
+  document.getElementById("hexmirror").addEventListener("click", (e) => { mirror = !mirror; e.currentTarget.classList.toggle("on", mirror); clear(); });
+  document.getElementById("hexclear").addEventListener("click", clear);
+  if ("IntersectionObserver" in window) new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(cv); else visible = true;
+  clear();
+  if (reduce) { for (let i = 0; i < 600; i++) { t += 0.03; const p = autoPoint(t); if (last) seg(last, p, cols[Math.floor(t / 5) % 5], 2.4); last = p; } return; }
+  requestAnimationFrame(frame);
 })();
 // Live demo: a tiny mirror engine. When nobody draws, it draws by itself.
 (() => {
