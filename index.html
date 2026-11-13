@@ -102,7 +102,9 @@
   .show canvas { width: 100%; aspect-ratio: 1; border-radius: 24px; display: block; background: #07040b; box-shadow: 0 0 0 1px #ffffff10, 0 20px 60px #8a5cff1f; }
   .show figcaption { font-size: 15px; } .show figcaption b { color: var(--text); display: block; font-size: 18px; margin-bottom: 2px; }
   .hexbox { width: 100%; max-width: 540px; justify-self: center; }
-  #hexdemo { width: 100%; aspect-ratio: 1; height: auto; display: block; border-radius: 28px; touch-action: none; cursor: crosshair; background: #07040b; box-shadow: 0 0 120px #18e0ff26, 0 0 0 1px #ffffff10; }
+  .hexstack { position: relative; width: 100%; aspect-ratio: 1; border-radius: 28px; overflow: hidden; background: #07040b; box-shadow: 0 0 120px #18e0ff26, 0 0 0 1px #ffffff10; }
+  .hexstack canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #hexdemo { touch-action: none; cursor: crosshair; }
   .hint { text-align: center; color: var(--muted); font-size: 14px; margin-top: 14px; }
   .folds { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 24px; }
   .folds button { font: inherit; font-size: 15px; padding: 9px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; }
@@ -227,7 +229,7 @@
         <g fill="none" stroke="url(#rg)" stroke-width="1.2"><circle r="96"/><circle r="40"/><circle cx="40" r="40"/><circle cx="-40" r="40"/><circle cx="20" cy="34.64" r="40"/><circle cx="-20" cy="34.64" r="40"/><circle cx="20" cy="-34.64" r="40"/><circle cx="-20" cy="-34.64" r="40"/></g></svg>
       <canvas id="demo" width="1040" height="1040" aria-label="Live symmetry demo, draw with your finger"></canvas>
       <div class="folds" role="group" aria-label="Number of mirror axes">
-        <button data-n="6">6</button><button data-n="8">8</button><button data-n="12" class="on">12</button><button data-n="24">24</button><button data-n="32">32</button><button id="clear">Clear</button>
+        <button data-n="5">5</button><button data-n="6">6</button><button data-n="8" class="on">8</button><button data-n="24">24</button><button id="clear">Clear</button>
       </div>
       <div class="hint">Draw inside the circle. Your finger is the brush, the mirrors do the rest.</div>
     </div>
@@ -254,13 +256,13 @@
   <div class="reveal">
     <span class="eyebrow">Try it: tiles</span>
     <h2>Now paint <span class="grad">a whole wall.</span></h2>
-    <p class="lead">Every line you draw lands in every hexagon at once, turned six ways and mirrored. That is one of the 17 tile patterns in the app. When you stop, it keeps going by itself.</p>
+    <p class="lead">Every line you draw lands in every cell at once, turned and mirrored. Hexagon or square, two of the 17 tile patterns in the app. When you stop, it keeps going by itself.</p>
     <div class="folds" role="group" aria-label="Tile size">
-      <button data-cell="70">Small</button><button data-cell="110" class="on">Medium</button><button data-cell="170">Large</button><button id="hexmirror" class="on">Mirror</button><button id="hexclear">Clear</button>
+      <button data-lat="hex" class="on">Hexagon</button><button data-lat="square">Square</button><button id="hexmirror" class="on">Mirror</button><button id="hexclear">Clear</button>
     </div>
   </div>
   <div class="hexbox">
-    <canvas id="hexdemo" width="1040" height="1040" aria-label="Live hexagon tile demo, draw with your finger"></canvas>
+    <div class="hexstack"><canvas id="hexgrid" width="1040" height="1040" aria-hidden="true"></canvas><canvas id="hexdemo" width="1040" height="1040" aria-label="Live tile demo, draw with your finger"></canvas></div>
     <div class="hint">Draw anywhere. The pattern repeats without a seam.</div>
   </div>
 </div></section>
@@ -488,61 +490,77 @@
     requestAnimationFrame(loop);
   });
 })();
-// Hex tile demo: p6m, every stroke copied into every cell, 6 turns plus mirror.
+// Tile demo: hexagon (p6m) or square (p4m), every stroke copied into every cell, turned and mirrored.
 (() => {
   const cv = document.getElementById("hexdemo"); if (!cv) return;
+  const gcv = document.getElementById("hexgrid"), g = gcv.getContext("2d");
   const x = cv.getContext("2d"), S = cv.width, TAU = Math.PI * 2, R3 = Math.sqrt(3);
   const cols = ["#ff2bd6", "#8a5cff", "#18e0ff", "#c6ff00", "#ff9100"];
-  let A = 110, mirror = true, last = null, drawing = false, auto = true, idle = 0, t = 0, ci = 0, visible = false;
+  let lat = "hex", A = 230, mirror = true, last = null, drawing = false, auto = true, idle = 0, t = 0, ci = 0, visible = false;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const centre = (q, r) => [S / 2 + A * (q + r / 2), S / 2 + A * R3 / 2 * r];
+  const centre = (q, r) => lat === "hex" ? [S / 2 + A * (q + r / 2), S / 2 + A * R3 / 2 * r] : [S / 2 + A * q, S / 2 + A * r];
   function nearest(px, py) {
-    const r = Math.round((py - S / 2) / (A * R3 / 2)); const q = Math.round((px - S / 2) / A - r / 2);
+    let q0, r0;
+    if (lat === "hex") { r0 = Math.round((py - S / 2) / (A * R3 / 2)); q0 = Math.round((px - S / 2) / A - r0 / 2); }
+    else { q0 = Math.round((px - S / 2) / A); r0 = Math.round((py - S / 2) / A); }
     let best = null, bd = 1e9;
-    for (let dq = -1; dq <= 1; dq++) for (let dr = -1; dr <= 1; dr++) { const c = centre(q + dq, r + dr); const d = (c[0] - px) ** 2 + (c[1] - py) ** 2; if (d < bd) { bd = d; best = c; } }
+    for (let dq = -1; dq <= 1; dq++) for (let dr = -1; dr <= 1; dr++) { const c = centre(q0 + dq, r0 + dr); const d = (c[0] - px) ** 2 + (c[1] - py) ** 2; if (d < bd) { bd = d; best = c; } }
     return best;
+  }
+  function eachCentre(fn) {
+    const n = Math.ceil(S / A) + 2;
+    for (let r = -n; r <= n; r++) for (let q = -n; q <= n; q++) { const c = centre(q, r); if (c[0] < -A || c[0] > S + A || c[1] < -A || c[1] > S + A) continue; fn(c); }
+  }
+  function drawGrid() {
+    // plain cells only: the simplest hexagon or square, no inner lines
+    g.clearRect(0, 0, S, S); g.strokeStyle = "rgba(255,255,255,0.10)"; g.lineWidth = 2; g.beginPath();
+    eachCentre((c) => {
+      if (lat === "hex") { const rr = A / R3; for (let k = 0; k <= 6; k++) { const a = TAU / 12 + k * TAU / 6; const px = c[0] + Math.cos(a) * rr, py = c[1] + Math.sin(a) * rr; k ? g.lineTo(px, py) : g.moveTo(px, py); } }
+      else g.rect(c[0] - A / 2, c[1] - A / 2, A, A);
+    });
+    g.stroke();
   }
   function seg(a, b, col, w) {
     const c0 = nearest((a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
     const ax = a[0] - c0[0], ay = a[1] - c0[1], bx = b[0] - c0[0], by = b[1] - c0[1];
-    const n = Math.ceil(S / A) + 2, tr = [];
-    for (let k = 0; k < 6; k++) { const c = Math.cos(k * TAU / 6), s = Math.sin(k * TAU / 6); tr.push([c, -s, s, c]); if (mirror) tr.push([c, s, s, -c]); }
+    const k = lat === "hex" ? 6 : 4, tr = [];
+    for (let i = 0; i < k; i++) { const c = Math.cos(i * TAU / k), s = Math.sin(i * TAU / k); tr.push([c, -s, s, c]); if (mirror) tr.push([c, s, s, -c]); }
     x.save(); x.lineCap = "round"; x.strokeStyle = col; x.lineWidth = w; x.shadowColor = col; x.shadowBlur = w * 2.5; x.globalCompositeOperation = "lighter";
     x.beginPath();
-    for (let r = -n; r <= n; r++) for (let q = -n; q <= n; q++) {
-      const c = centre(q, r); if (c[0] < -A || c[0] > S + A || c[1] < -A || c[1] > S + A) continue;
-      for (const m of tr) { x.moveTo(c[0] + m[0] * ax + m[1] * ay, c[1] + m[2] * ax + m[3] * ay); x.lineTo(c[0] + m[0] * bx + m[1] * by, c[1] + m[2] * bx + m[3] * by); }
-    }
+    eachCentre((c) => { for (const m of tr) { x.moveTo(c[0] + m[0] * ax + m[1] * ay, c[1] + m[2] * ax + m[3] * ay); x.lineTo(c[0] + m[0] * bx + m[1] * by, c[1] + m[2] * bx + m[3] * by); } });
     x.stroke(); x.restore();
   }
-  function fade() { x.globalCompositeOperation = "source-over"; x.fillStyle = "rgba(7,4,11,0.008)"; x.fillRect(0, 0, S, S); }
-  const autoPoint = (t) => { const r = A * 0.48 * (0.5 + 0.5 * Math.sin(t * 0.9)); const a = t * 0.31 + Math.sin(t * 0.5); return [S / 2 + Math.cos(a) * r, S / 2 + Math.sin(a) * r]; };
+  function fade() { x.globalCompositeOperation = "destination-out"; x.fillStyle = "rgba(0,0,0,0.012)"; x.fillRect(0, 0, S, S); }
+  const autoPoint = (t) => { const r = A * 0.46 * (0.5 + 0.5 * Math.sin(t * 0.9)); const a = t * 0.31 + Math.sin(t * 0.5); return [S / 2 + Math.cos(a) * r, S / 2 + Math.sin(a) * r]; };
   function frame() {
     if (visible) {
       fade();
-      if (auto) { t += 0.03; const p = autoPoint(t); if (last) seg(last, p, cols[Math.floor(t / 5) % cols.length], 2.4); last = p; }
+      if (auto) { t += 0.03; const p = autoPoint(t); if (last) seg(last, p, cols[Math.floor(t / 5) % cols.length], 2.6); last = p; }
       else if (!drawing && ++idle > 240) { auto = true; last = null; }
     }
     requestAnimationFrame(frame);
   }
-  const clear = () => { x.globalCompositeOperation = "source-over"; x.fillStyle = "#07040b"; x.fillRect(0, 0, S, S); last = null; };
+  const clear = () => { x.clearRect(0, 0, S, S); last = null; };
   const pos = (e) => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * S, (e.clientY - r.top) / r.height * S]; };
   cv.addEventListener("pointerdown", (e) => { cv.setPointerCapture(e.pointerId); auto = false; drawing = true; idle = 0; last = pos(e); ci = (ci + 1) % cols.length; });
-  cv.addEventListener("pointermove", (e) => { if (!drawing) return; const p = pos(e); seg(last, p, cols[ci], 3); last = p; });
+  cv.addEventListener("pointermove", (e) => { if (!drawing) return; const p = pos(e); seg(last, p, cols[ci], 3.2); last = p; });
   const up = () => { drawing = false; idle = 0; };
   cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
-  document.querySelectorAll("#tiles button[data-cell]").forEach(b => b.addEventListener("click", () => { A = +b.dataset.cell; document.querySelectorAll("#tiles button[data-cell]").forEach(o => o.classList.toggle("on", o === b)); clear(); }));
+  document.querySelectorAll("#tiles button[data-lat]").forEach(b => b.addEventListener("click", () => {
+    lat = b.dataset.lat; A = lat === "hex" ? 230 : 260;
+    document.querySelectorAll("#tiles button[data-lat]").forEach(o => o.classList.toggle("on", o === b)); clear(); drawGrid();
+  }));
   document.getElementById("hexmirror").addEventListener("click", (e) => { mirror = !mirror; e.currentTarget.classList.toggle("on", mirror); clear(); });
   document.getElementById("hexclear").addEventListener("click", clear);
   if ("IntersectionObserver" in window) new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(cv); else visible = true;
-  clear();
-  if (reduce) { for (let i = 0; i < 600; i++) { t += 0.03; const p = autoPoint(t); if (last) seg(last, p, cols[Math.floor(t / 5) % 5], 2.4); last = p; } return; }
+  drawGrid();
+  if (reduce) { for (let i = 0; i < 600; i++) { t += 0.03; const p = autoPoint(t); if (last) seg(last, p, cols[Math.floor(t / 5) % 5], 2.6); last = p; } return; }
   requestAnimationFrame(frame);
 })();
 // Live demo: a tiny mirror engine. When nobody draws, it draws by itself.
 (() => {
   const cv = document.getElementById("demo"), x = cv.getContext("2d"), S = cv.width, C = S / 2;
-  let N = 12;
+  let N = 8;
   const cols = ["#ff2bd6", "#8a5cff", "#18e0ff", "#c6ff00", "#ff9100"];
   let ci = 0, last = null, idle = 0, t = 0, auto = true, drawing = false, visible = true;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
